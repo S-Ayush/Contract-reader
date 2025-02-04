@@ -1,28 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import Web3 from 'web3';
-import { Toaster } from 'react-hot-toast';
-import ContractInteraction from './components/ContractInteraction';
-import { Code, Wallet, Link } from 'lucide-react';
-import toast from 'react-hot-toast';
-
-const ETHEREUM_RPC = 'https://sepolia.infura.io';
+import { useState, useEffect } from "react";
+import { Toaster } from "react-hot-toast";
+import ContractInteraction from "./components/ContractInteraction";
+import { Code, Wallet, Link } from "lucide-react";
+import toast from "react-hot-toast";
 
 function App() {
-  const [web3Instance, setWeb3Instance] = useState<Web3>(new Web3(ETHEREUM_RPC));
-  const [contractAddress, setContractAddress] = useState('');
-  const [abi, setAbi] = useState('');
+  const [contractAddress, setContractAddress] = useState("");
+  const [abi, setAbi] = useState("");
   const [isValidAbi, setIsValidAbi] = useState(false);
   const [parsedAbi, setParsedAbi] = useState<any[]>([]);
-  const [account, setAccount] = useState<string>('');
+  const [account, setAccount] = useState<string>("");
 
   useEffect(() => {
     // Check if MetaMask is already connected
-    if (typeof window.ethereum !== 'undefined') {
-      window.ethereum.request({ method: 'eth_accounts' })
+    if (typeof window.ethereum !== "undefined") {
+      window.ethereum
+        .request({ method: "eth_accounts" })
         .then((accounts: string[]) => {
           if (accounts.length > 0) {
             setAccount(accounts[0]);
-            setWeb3Instance(new Web3(window.ethereum));
           }
         })
         .catch(console.error);
@@ -45,40 +41,41 @@ function App() {
   };
 
   const connectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
+    if (typeof window.ethereum !== "undefined") {
       try {
-        const accounts = await window.ethereum.request({ 
-          method: 'eth_requestAccounts' 
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
         });
         setAccount(accounts[0]);
-        const newWeb3 = new Web3(window.ethereum);
-        setWeb3Instance(newWeb3);
-        toast.success('Wallet connected successfully!');
-      } catch (error: any) {
-        toast.error(error.message || 'Failed to connect wallet');
+        toast.success("Wallet connected successfully!");
+      } catch (error) {
+        toast.error(
+          (error as { message: string }).message || "Failed to connect wallet"
+        );
       }
     } else {
-      toast.error('Please install MetaMask or another Web3 wallet');
+      toast.error("Please install MetaMask or another Web3 wallet");
     }
   };
 
   const disconnectWallet = () => {
-    setAccount('');
-    setWeb3Instance(new Web3(ETHEREUM_RPC));
-    toast.success('Wallet disconnected');
+    setAccount("");
+    toast.success("Wallet disconnected");
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Toaster position="top-right" />
-      
+
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Wallet className="w-8 h-8 text-blue-600" />
-              <h1 className="text-xl font-bold text-gray-900">Smart Contract Interface</h1>
+              <h1 className="text-xl font-bold text-gray-900">
+                Smart Contract Interface
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-500">
@@ -116,7 +113,9 @@ function App() {
           {/* Contract Input Section */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Contract Address</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Contract Address
+              </label>
               <div className="mt-1">
                 <input
                   type="text"
@@ -129,7 +128,9 @@ function App() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Contract ABI</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Contract ABI
+              </label>
               <div className="mt-1">
                 <textarea
                   value={abi}
@@ -140,7 +141,9 @@ function App() {
                 />
               </div>
               {abi && !isValidAbi && (
-                <p className="mt-1 text-sm text-red-600">Please enter a valid JSON ABI array</p>
+                <p className="mt-1 text-sm text-red-600">
+                  Please enter a valid JSON ABI array
+                </p>
               )}
             </div>
           </div>
@@ -150,7 +153,6 @@ function App() {
             <ContractInteraction
               abi={parsedAbi}
               contractAddress={contractAddress}
-              web3={web3Instance}
               account={account}
             />
           )}
@@ -159,9 +161,12 @@ function App() {
           {(!isValidAbi || !contractAddress) && (
             <div className="text-center py-12">
               <Code className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No Contract Connected</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No Contract Connected
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
-                Enter a contract address and ABI to start interacting with the smart contract.
+                Enter a contract address and ABI to start interacting with the
+                smart contract.
               </p>
             </div>
           )}

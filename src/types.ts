@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface AbiInput {
   name: string;
   type: string;
@@ -23,4 +24,13 @@ export interface ContractFunction {
   inputs: AbiInput[];
   outputs: AbiOutput[];
   stateMutability: string;
+}
+
+export interface SavedContract {
+  id: string;
+  name: string;
+  address: string;
+  abi: any[];
+  chain: string;
+  createdAt: number;
 }

@@ -10,12 +10,14 @@ interface Props {
   abi: any[];
   contractAddress: string;
   account: string;
+  chain: string;
 }
 
 const ContractInteraction: React.FC<Props> = ({
   abi,
   contractAddress,
   account,
+  chain
 }) => {
   const [selectedFunction, setSelectedFunction] =
     useState<ContractFunction | null>(null);
@@ -110,7 +112,7 @@ const ContractInteraction: React.FC<Props> = ({
 
   const executeFunction = async () => {
     try {
-      const web3 = getWeb3Instance();
+      const web3 = getWeb3Instance(chain);
       if (!selectedFunction) return;
       if (!validateInputs(web3)) return;
 
@@ -173,7 +175,7 @@ const ContractInteraction: React.FC<Props> = ({
     }
 
     try {
-      const web3 = getWeb3Instance();
+      const web3 = getWeb3Instance(chain);
       const signature = await web3.eth.personal.sign(
         messageToSign,
         account,
@@ -198,7 +200,7 @@ const ContractInteraction: React.FC<Props> = ({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-3">
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Contract Functions</h3>
           <div className="grid grid-cols-1 gap-2">
@@ -309,7 +311,7 @@ const ContractInteraction: React.FC<Props> = ({
 
       {/* Result Section */}
       {result && (
-        <div className="space-y-2">
+        <div className="space-y-2 p-3">
           <h3 className="text-lg font-semibold">Result</h3>
           <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
             {result}

@@ -1,8 +1,7 @@
 import Web3 from "web3"
+import { availableChains } from "./helpers";
 
-const ETHEREUM_RPC =
-  "https://eth-sepolia.g.alchemy.com/v2/-0kvC2T8jXtU7tcws_2_C5loJbiqlBtt";
-
-export const getWeb3Instance = () => {
-   return new Web3(ETHEREUM_RPC);
+export const getWeb3Instance = (chain:string = 'ethereum_testnet') => {
+    const rpcUrl = availableChains[chain as keyof typeof availableChains].https_rpc;
+   return new Web3(rpcUrl);
 }

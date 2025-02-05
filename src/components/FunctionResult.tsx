@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import { availableChains } from "../utils/helpers";
 
 interface Props {
   abi: any[];
@@ -73,7 +74,7 @@ const FunctionResult: React.FC<Props> = ({
     try {
       setIsProcessing(true);
       setStatus("processing");
-      const web3 = getWeb3Instance(chain);
+      let web3 = getWeb3Instance(chain);
       if (!selectedFunction) return;
       if (!validateInputs(web3)) {
         setIsProcessing(false);
@@ -86,12 +87,12 @@ const FunctionResult: React.FC<Props> = ({
       );
 
       setResult("Processing...");
-      const contract = getContract(web3);
 
       if (
         selectedFunction.stateMutability === "view" ||
         selectedFunction.stateMutability === "pure"
       ) {
+        const contract = getContract(web3);
         const result = await contract.methods[selectedFunction.name](
           ...params
         ).call();
@@ -103,18 +104,51 @@ const FunctionResult: React.FC<Props> = ({
         if (!account) {
           toast.error("Please connect your wallet first");
           setStatus("error");
+          setIsProcessing(false);
           return;
         }
 
-        const gasEstimate = await contract.methods[selectedFunction.name](
-          ...params
-        ).estimateGas({ from: account });
+        const provider = (window as any).ethereum;
+        web3 = new Web3(provider);
+        const currentChainId = await provider.request({
+          method: "eth_chainId",
+        });
+
+        if (
+          currentChainId !==
+          availableChains[chain as keyof typeof availableChains].chainId
+        ) {
+          try {
+            await provider.request({
+              method: "wallet_switchEthereumChain",
+              params: [
+                {
+                  chainId:
+                    availableChains[chain as keyof typeof availableChains]
+                      .chainId,
+                },
+              ],
+            });
+            toast.success(
+              `Switched to the ${
+                availableChains[chain as keyof typeof availableChains].name
+              } network.`
+            );
+          } catch {
+            toast.error(
+              `Failed to switch to the ${
+                availableChains[chain as keyof typeof availableChains].name
+              } network.`
+            );
+          }
+        }
+
+        const contract = getContract(web3);
 
         const tx = await contract.methods[selectedFunction.name](
           ...params
         ).send({
           from: account,
-          gas: Math.floor(Number(gasEstimate) * 1.2).toString(),
         });
 
         const serializedTx = serializeResult(tx);
@@ -123,6 +157,7 @@ const FunctionResult: React.FC<Props> = ({
         setStatus("success");
       }
     } catch (error: any) {
+      console.error("error", error);
       const errorMessage = error.message.includes("execution reverted")
         ? "Transaction failed: Contract execution reverted"
         : error.message;
@@ -183,12 +218,13 @@ const FunctionResult: React.FC<Props> = ({
             </p>
           </div>
         </div>
-        {!selectedFunction.stateMutability.includes("view") && (
-          <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1 rounded-full text-sm">
-            <ArrowRight className="w-4 h-4" />
-            Requires wallet
-          </div>
-        )}
+        {!selectedFunction.stateMutability.includes("view") &&
+          !selectedFunction.stateMutability.includes("pure") && (
+            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1 rounded-full text-sm">
+              <ArrowRight className="w-4 h-4" />
+              Requires wallet
+            </div>
+          )}
       </div>
 
       {/* Function Parameters */}

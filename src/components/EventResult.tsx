@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import Web3 from "web3";
 import {
   formatParameter,
@@ -28,7 +28,7 @@ const EventResult: React.FC<Props> = ({
   const [listening, setListening] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
   const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
-  const [subscription, setSubscription] = useState<any>(null);
+  const subscription = useRef<any>(null);
   const [subscribedEvent, setSubscribedEvent] = useState<any>(null);
 
   // Reset input values when selected event changes
@@ -97,7 +97,7 @@ const EventResult: React.FC<Props> = ({
       sub.on("data", (event: any) => {
         const serializeEvent = serializeResult(event);
         setEvents((prev) => {
-          const updatedEvents = [...prev, {...serializeEvent, id: v4()}];
+          const updatedEvents = [...prev, { ...serializeEvent, id: v4() }];
           return updatedEvents.length > 200
             ? updatedEvents.slice(-200)
             : updatedEvents;
@@ -109,8 +109,7 @@ const EventResult: React.FC<Props> = ({
         setListening(false);
         setSubscribedEvent(null);
       });
-
-      setSubscription(sub);
+      subscription.current = sub;
     } catch (error: any) {
       toast.error(error.message);
       setSubscribedEvent(null);
@@ -118,14 +117,21 @@ const EventResult: React.FC<Props> = ({
   };
 
   const unsubscribeFromEvent = () => {
-    if (subscription) {
-      subscription.unsubscribe();
-      toast.success(`Unsubscribed from ${subscribedEvent.name}`);
-      setSubscription(null);
+    if (subscription.current) {
+      subscription.current.unsubscribe();
+      subscription.current.removeAllListeners();
+      toast.success(`Unsubscribed from last event`);
+      subscription.current = null;
       setListening(false);
       setSubscribedEvent(null);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      unsubscribeFromEvent();
+    };
+  }, []);
 
   const getActiveFilters = () => {
     return Object.entries(inputValues).filter(([, value]) => value !== "");
@@ -249,7 +255,6 @@ const EventResult: React.FC<Props> = ({
             ? "bg-red-600 text-white hover:bg-red-700"
             : "bg-blue-600 text-white hover:bg-blue-700"
         }`}
-        disabled={listening && subscribedEvent?.name !== selectedEvent.name}
       >
         {listening ? (
           <>
@@ -277,10 +282,7 @@ const EventResult: React.FC<Props> = ({
           </div>
           <div className="space-y-3">
             {events.map((event) => (
-              <EventCard
-                event={event}
-                key={event.id}
-              />
+              <EventCard event={event} key={event.id} />
             ))}
           </div>
         </div>

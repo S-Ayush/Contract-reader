@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Wallet } from 'lucide-react';
-import { Link, Outlet } from 'react-router-dom';
-import { Toaster,toast } from 'react-hot-toast';
-import { useEffect, useState } from 'react';
+import { Wallet } from "lucide-react";
+import { Link, Outlet } from "react-router-dom";
+import { Toaster, toast } from "react-hot-toast";
+import React, { useEffect, useState } from "react";
 
 export default function Layout() {
   const [account, setAccount] = useState<string>("");
 
   useEffect(() => {
     if (typeof (window as any).ethereum !== "undefined") {
-        (window as any).ethereum
+      (window as any).ethereum
         .request({ method: "eth_accounts" })
         .then((accounts: string[]) => {
           if (accounts.length > 0) {
@@ -58,14 +58,14 @@ export default function Layout() {
                 </h1>
               </Link>
               <nav className="flex space-x-4">
-                <Link 
-                  to="/" 
+                <Link
+                  to="/"
                   className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Contracts
                 </Link>
-                <Link 
-                  to="/register" 
+                <Link
+                  to="/register"
                   className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Register New
@@ -73,9 +73,6 @@ export default function Layout() {
               </nav>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500">
-                Connected to Ethereum Mainnet
-              </div>
               {!account ? (
                 <button
                   onClick={connectWallet}

@@ -24,6 +24,7 @@ export interface ContractFunction {
   inputs: AbiInput[];
   outputs: AbiOutput[];
   stateMutability: string;
+  type: string;
 }
 
 export interface SavedContract {

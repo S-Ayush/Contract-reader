@@ -13,12 +13,19 @@ interface Props {
   chain: string;
 }
 
-const ContractInteraction: React.FC<Props> = ({...props }) => {
-  const [selectedFunction, setSelectedFunction] = useState<ContractFunction | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<ContractFunction | null>(null);
+const ContractInteraction: React.FC<Props> = ({ ...props }) => {
+  const [selectedFunction, setSelectedFunction] =
+    useState<ContractFunction | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<ContractFunction | null>(
+    null
+  );
 
-  const functions = props.abi.filter((item) => item.type === "function") as ContractFunction[];
-  const events = props.abi.filter((item) => item.type === "event") as ContractFunction[];
+  const functions = props.abi.filter(
+    (item) => item.type === "function"
+  ) as ContractFunction[];
+  const events = props.abi.filter(
+    (item) => item.type === "event"
+  ) as ContractFunction[];
 
   return (
     <div className="h-[calc(100vh-2rem)] mx-auto p-4">
@@ -26,24 +33,30 @@ const ContractInteraction: React.FC<Props> = ({...props }) => {
         {/* Left Panel - Function & Event Lists */}
         <div className="h-full overflow-hidden flex flex-col bg-gray-50 rounded-xl">
           <div className="flex-1 flex flex-col overflow-y-auto px-4 gap-3">
-            <FunctionList 
-              title="Read Functions" 
-              functions={functions.filter(f => f.stateMutability === "view" || f.stateMutability === "pure")}
+            <FunctionList
+              title="Read Functions"
+              functions={functions.filter(
+                (f) =>
+                  f.stateMutability === "view" || f.stateMutability === "pure"
+              )}
               selectedFunction={selectedFunction}
               onSelect={setSelectedFunction}
               iconColor="text-blue-600"
               bgColor="bg-blue-50"
             />
-            <FunctionList 
-              title="Write Functions" 
-              functions={functions.filter(f => f.stateMutability !== "view" && f.stateMutability !== "pure")}
+            <FunctionList
+              title="Write Functions"
+              functions={functions.filter(
+                (f) =>
+                  f.stateMutability !== "view" && f.stateMutability !== "pure"
+              )}
               selectedFunction={selectedFunction}
               onSelect={setSelectedFunction}
               iconColor="text-purple-600"
               bgColor="bg-purple-50"
             />
-            <EventList 
-              events={events} 
+            <EventList
+              events={events}
               selectedEvent={selectedEvent}
               onSelect={setSelectedEvent}
             />
@@ -54,10 +67,18 @@ const ContractInteraction: React.FC<Props> = ({...props }) => {
         <div className="h-full overflow-hidden flex flex-col bg-white rounded-xl border border-gray-200 shadow-sm">
           <div className="flex-1 overflow-y-auto p-6">
             {selectedFunction && (
-              <FunctionResult {...props} selectedFunction={selectedFunction} />
+              <FunctionResult
+                {...props}
+                selectedFunction={selectedFunction}
+                key={selectedFunction.name}
+              />
             )}
             {selectedEvent && (
-              <EventResult {...props} selectedEvent={selectedEvent} />
+              <EventResult
+                {...props}
+                selectedEvent={selectedEvent}
+                key={selectedEvent.name}
+              />
             )}
             {!selectedFunction && !selectedEvent && (
               <div className="flex flex-col items-center justify-center h-full text-center p-8">

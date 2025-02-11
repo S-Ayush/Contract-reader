@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import {
   formatParameter,
   getInputPlaceholder,
+  getWalletWeb3Provider,
   getWeb3Instance,
   serializeResult,
 } from "../utils/web3";
@@ -17,7 +18,6 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import { availableChains } from "../utils/helpers";
 
 interface Props {
   abi: any[];
@@ -107,41 +107,7 @@ const FunctionResult: React.FC<Props> = ({
           setIsProcessing(false);
           return;
         }
-
-        const provider = (window as any).ethereum;
-        web3 = new Web3(provider);
-        const currentChainId = await provider.request({
-          method: "eth_chainId",
-        });
-
-        if (
-          currentChainId !==
-          availableChains[chain as keyof typeof availableChains].chainId
-        ) {
-          try {
-            await provider.request({
-              method: "wallet_switchEthereumChain",
-              params: [
-                {
-                  chainId:
-                    availableChains[chain as keyof typeof availableChains]
-                      .chainId,
-                },
-              ],
-            });
-            toast.success(
-              `Switched to the ${
-                availableChains[chain as keyof typeof availableChains].name
-              } network.`
-            );
-          } catch {
-            toast.error(
-              `Failed to switch to the ${
-                availableChains[chain as keyof typeof availableChains].name
-              } network.`
-            );
-          }
-        }
+        web3 = await getWalletWeb3Provider(chain);
 
         const contract = getContract(web3);
 

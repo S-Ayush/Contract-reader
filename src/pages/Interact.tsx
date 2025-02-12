@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import StorageContract from "../services/StorageContract.ts";
 import { getWalletWeb3Provider } from "../utils/web3.ts";
+import PrivacyModal from "../components/PrivacyModal.tsx";
 
 export default function Interact() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,10 @@ export default function Interact() {
   const [contract, setContract] = useState<SavedContract | null>(null);
   const { account } = useOutletContext<{ account: string }>();
   const [isRegistering, setIsRegistering] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [selectedPrivacy, setSelectedPrivacy] = useState<
+    "public" | "private" | null
+  >(null);
 
   useEffect(() => {
     const contracts = getSavedContracts();
@@ -28,16 +33,25 @@ export default function Interact() {
   const handleRegisterOnChain = async () => {
     if (!account) {
       toast.error("Please connect your wallet first");
-      setIsRegistering(false);
       return;
     }
+    setShowPrivacyModal(true);
+  };
+
+  const handleConfirmRegistration = async () => {
+    if (!selectedPrivacy) {
+      toast.error("Please select a privacy option");
+      return;
+    }
+
     setIsRegistering(true);
-    
+    setShowPrivacyModal(false);
+
     try {
       if (contract) {
-        const web3 = await getWalletWeb3Provider(contract?.chain);
+        const web3 = await getWalletWeb3Provider("ethereum_testnet");
         const txHash = await StorageContract.registerSmartContract(
-          contract,
+          { ...contract, isPublic: selectedPrivacy === "public" },
           account,
           web3
         );
@@ -48,6 +62,7 @@ export default function Interact() {
       toast.error(`Failed to register contract: ${error.message || error}`);
     } finally {
       setIsRegistering(false);
+      setSelectedPrivacy(null);
     }
   };
 
@@ -100,6 +115,18 @@ export default function Interact() {
           chain={contract.chain}
         />
       </div>
+
+      {/* Privacy Selection Modal */}
+      <PrivacyModal
+        isOpen={showPrivacyModal}
+        onClose={() => {
+          setShowPrivacyModal(false);
+          setSelectedPrivacy(null);
+        }}
+        onConfirm={handleConfirmRegistration}
+        selectedPrivacy={selectedPrivacy}
+        setSelectedPrivacy={setSelectedPrivacy}
+      />
     </div>
   );
 }

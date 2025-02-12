@@ -10,6 +10,7 @@ const contractAbi = [
       { internalType: "string", name: "_name", type: "string" },
       { internalType: "string", name: "_abi", type: "string" },
       { internalType: "string", name: "_chain", type: "string" },
+      { internalType: "bool", name: "_isPublic", type: "bool" },
     ],
     name: "registerSmartContract",
     outputs: [],
@@ -17,20 +18,80 @@ const contractAbi = [
     type: "function",
   },
   {
-    inputs: [{ internalType: "address", name: "_creator", type: "address" }],
+    inputs: [{ internalType: "bytes32", name: "identifier", type: "bytes32" }],
+    name: "getMySmartContract",
+    outputs: [
+      {
+        components: [
+          { internalType: "string", name: "contract_name", type: "string" },
+          { internalType: "address", name: "contract_address", type: "address" },
+          { internalType: "string", name: "contract_abi", type: "string" },
+          { internalType: "string", name: "contract_chain", type: "string" },
+          { internalType: "address", name: "creator", type: "address" },
+          { internalType: "bool", name: "isPublic", type: "bool" },
+        ],
+        internalType: "struct SmartContractRegistry.SmartContractDetails",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "bytes32", name: "identifier", type: "bytes32" }],
+    name: "getPublicSmartContract",
+    outputs: [
+      {
+        components: [
+          { internalType: "string", name: "contract_name", type: "string" },
+          { internalType: "address", name: "contract_address", type: "address" },
+          { internalType: "string", name: "contract_abi", type: "string" },
+          { internalType: "string", name: "contract_chain", type: "string" },
+          { internalType: "address", name: "creator", type: "address" },
+          { internalType: "bool", name: "isPublic", type: "bool" },
+        ],
+        internalType: "struct SmartContractRegistry.SmartContractDetails",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "page", type: "uint256" }],
+    name: "getPublicSmartContracts",
+    outputs: [
+      {
+        components: [
+          { internalType: "string", name: "contract_name", type: "string" },
+          { internalType: "address", name: "contract_address", type: "address" },
+          { internalType: "string", name: "contract_abi", type: "string" },
+          { internalType: "string", name: "contract_chain", type: "string" },
+          { internalType: "address", name: "creator", type: "address" },
+          { internalType: "bool", name: "isPublic", type: "bool" },
+        ],
+        internalType: "struct SmartContractRegistry.SmartContractDetails[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getSmartContractsByCreator",
     outputs: [
       {
         components: [
           { internalType: "string", name: "contract_name", type: "string" },
-          {
-            internalType: "address",
-            name: "contract_address",
-            type: "address",
-          },
+          { internalType: "address", name: "contract_address", type: "address" },
           { internalType: "string", name: "contract_abi", type: "string" },
           { internalType: "string", name: "contract_chain", type: "string" },
           { internalType: "address", name: "creator", type: "address" },
+          { internalType: "bool", name: "isPublic", type: "bool" },
         ],
         internalType: "struct SmartContractRegistry.SmartContractDetails[]",
         name: "",
@@ -44,68 +105,70 @@ const contractAbi = [
 
 class StorageContract {
   private static web3: Web3;
-  private readonly contractAddress: string =
-    "0x7aa76d39df4132975dbbf23c9bfe9cd6638ba721";
+  private readonly contractAddress: string = "0x32c574de9459f4581f13a6544b8995cdf99aca93";
   private readonly contractInstance: any;
 
   constructor() {
-    // Initialize Web3 only once for read operations
     if (!StorageContract.web3) {
       StorageContract.web3 = getWeb3Instance();
     }
 
-    // Initialize the contract instance
-    this.contractInstance = new StorageContract.web3.eth.Contract(
-      contractAbi,
-      this.contractAddress
-    );
+    this.contractInstance = new StorageContract.web3.eth.Contract(contractAbi, this.contractAddress);
   }
 
-  /**
-   * Fetch all smart contracts created by a specific creator
-   * @param creatorAddress - The Ethereum address of the creator
-   * @returns {Promise<any[]>} - Array of smart contracts
-   */
-  async getCreatorContracts(creatorAddress: string): Promise<any[]> {
+  async getCreatorContracts(): Promise<any[]> {
     try {
-      const contracts = await this.contractInstance.methods
-        .getSmartContractsByCreator(creatorAddress)
-        .call();
-      console.log("Fetched Contracts:", contracts);
-      return contracts;
+      return await this.contractInstance.methods.getSmartContractsByCreator().call();
     } catch (error) {
-      console.error("Error fetching contracts:", error);
+      console.error("Error fetching creator contracts:", error);
       throw error;
     }
   }
 
-  /**
-   * Registers a new smart contract on the blockchain
-   * @param contract - Contract to be deployed
-   * @param creatorAddress - address of the creator
-   * @param web3 - web3 instance of wallet
-   * @returns {Promise<string>} - Transaction hash of the operation
-   */
+  async getMySmartContract(identifier: string): Promise<any> {
+    try {
+      return await this.contractInstance.methods.getMySmartContract(identifier).call();
+    } catch (error) {
+      console.error("Error fetching my smart contract:", error);
+      throw error;
+    }
+  }
+
+  async getPublicSmartContract(identifier: string): Promise<any> {
+    try {
+      return await this.contractInstance.methods.getPublicSmartContract(identifier).call();
+    } catch (error) {
+      console.error("Error fetching public smart contract:", error);
+      throw error;
+    }
+  }
+
+  async getPublicSmartContracts(page: number): Promise<any[]> {
+    try {
+      return await this.contractInstance.methods.getPublicSmartContracts(page).call();
+    } catch (error) {
+      console.error("Error fetching public smart contracts:", error);
+      throw error;
+    }
+  }
+
   async registerSmartContract(
     savedContract: SavedContract,
     creatorAddress: string,
     web3: Web3
   ): Promise<string> {
     try {
-      // Create contract instance with MetaMask provider
       const contract = new web3.eth.Contract(contractAbi, this.contractAddress);
 
-      // Send transaction
       const tx = await contract.methods
         .registerSmartContract(
           savedContract.address,
           savedContract.name,
           savedContract.abi.toString(),
-          savedContract.chain
+          savedContract.chain,
+          savedContract.isPublic === true
         )
-        .send({
-          from: creatorAddress,
-        });
+        .send({ from: creatorAddress });
 
       console.log("Contract Registered. Transaction Hash:", tx.transactionHash);
       return tx.transactionHash;

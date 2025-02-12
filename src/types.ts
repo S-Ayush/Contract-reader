@@ -34,4 +34,5 @@ export interface SavedContract {
   abi: any[];
   chain: string;
   createdAt: number;
+  isPublic?: boolean;
 }

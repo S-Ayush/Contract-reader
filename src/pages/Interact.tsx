@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
-import { getSavedContracts } from "../utils/storage.ts";
+import { deleteContract, getSavedContracts } from "../utils/storage.ts";
 import ContractInteraction from "../components/ContractInteraction";
 import { SavedContract } from "../types";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import StorageContract from "../services/StorageContract.ts";
 import { getWalletWeb3Provider } from "../utils/web3.ts";
 import PrivacyModal from "../components/PrivacyModal.tsx";
 
 export default function Interact() {
-  const { id } = useParams<{ id: string }>();
+  const { id, visibility } = useParams<{ id: string; visibility: "local" }>();
   const navigate = useNavigate();
   const [contract, setContract] = useState<SavedContract | null>(null);
   const { account } = useOutletContext<{ account: string }>();
@@ -20,15 +20,26 @@ export default function Interact() {
     "public" | "private" | null
   >(null);
 
-  useEffect(() => {
-    const contracts = getSavedContracts();
-    const found = contracts.find((c) => c.id === id);
-    if (found) {
-      setContract(found);
+  const getContract = async () => {
+    let _contract: SavedContract;
+    if (visibility === "local") {
+      const contracts = getSavedContracts();
+      _contract = contracts.find((c) => c.id === id) as SavedContract;
+    } else {
+      _contract = await StorageContract.getSmartContract(id as string);
+    }
+    if (_contract) {
+      setContract(_contract);
     } else {
       navigate("/");
     }
-  }, [id, navigate]);
+  };
+
+  useEffect(() => {
+    if (id) {
+      getContract();
+    }
+  }, [id, visibility]);
 
   const handleRegisterOnChain = async () => {
     if (!account) {
@@ -43,7 +54,6 @@ export default function Interact() {
       toast.error("Please select a privacy option");
       return;
     }
-
     setIsRegistering(true);
     setShowPrivacyModal(false);
 
@@ -55,7 +65,9 @@ export default function Interact() {
           account,
           web3
         );
+        deleteContract(contract.id);
         toast.success(`Contract registered successfully: ${txHash}`);
+        navigate(`/interact/${contract.id}`);
       }
     } catch (error) {
       console.error("Failed to register contract:", error);
@@ -89,31 +101,41 @@ export default function Interact() {
             </p>
           </div>
         </div>
-        <button
-          onClick={handleRegisterOnChain}
-          disabled={isRegistering}
-          className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed ${
-            isRegistering ? "cursor-not-allowed" : "cursor-pointer"
-          }`}
-        >
-          {isRegistering ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Registering...
-            </>
-          ) : (
-            "Register on Chain"
-          )}
-        </button>
+        {visibility === "local" ? (
+          <button
+            onClick={handleRegisterOnChain}
+            disabled={isRegistering}
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          >
+            {isRegistering ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Registering...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-5 h-5 mr-2" />
+                Register on Chain
+              </>
+            )}
+          </button>
+        ) : (
+          <div className="flex items-center space-x-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg">
+            <CheckCircle2 className="w-5 h-5" />
+            <span className="font-medium">On-Chain</span>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow-md">
-        <ContractInteraction
-          abi={contract.abi}
-          contractAddress={contract.address}
-          account={account}
-          chain={contract.chain}
-        />
+        {contract && (
+          <ContractInteraction
+            abi={contract.abi}
+            contractAddress={contract.address}
+            account={account}
+            chain={contract.chain}
+          />
+        )}
       </div>
 
       {/* Privacy Selection Modal */}

@@ -33,6 +33,6 @@ export interface SavedContract {
   address: string;
   abi: any[];
   chain: string;
-  createdAt: number;
+  createdAt?: number;
   isPublic?: boolean;
 }

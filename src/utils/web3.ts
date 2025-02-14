@@ -91,8 +91,9 @@ export const getWalletWeb3Provider = async (chain: string) => {
     method: "eth_chainId",
   });
   if (
+    chain &&
     currentChainId !==
-    availableChains[chain as keyof typeof availableChains].chainId
+      availableChains[chain as keyof typeof availableChains].chainId
   ) {
     try {
       await provider.request({

@@ -65,10 +65,10 @@ export default function Layout() {
                   Contracts
                 </Link>
                 <Link
-                  to="/register"
+                  to="/signature"
                   className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  Register New
+                  Signature
                 </Link>
               </nav>
             </div>

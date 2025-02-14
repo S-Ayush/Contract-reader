@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Code } from 'lucide-react';
-import { saveContract } from '../utils/storage.ts';
-import toast from 'react-hot-toast'; 
-import { availableChains } from '../utils/helpers.ts';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Code } from "lucide-react";
+import { saveContract } from "../utils/storage.ts";
+import toast from "react-hot-toast";
+import { availableChains } from "../utils/helpers.ts";
 
 export default function Register() {
-  const [name, setName] = useState('');
-  const [contractAddress, setContractAddress] = useState('');
-  const [abi, setAbi] = useState('');
-  const [chain, setChain] = useState<string>('')
+  const [name, setName] = useState("");
+  const [contractAddress, setContractAddress] = useState("");
+  const [abi, setAbi] = useState("");
+  const [chain, setChain] = useState<string>("");
   const [isValidAbi, setIsValidAbi] = useState(false);
   const navigate = useNavigate();
 
@@ -25,24 +25,24 @@ export default function Register() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name.trim()) {
-      toast.error('Please enter a contract name');
+      toast.error("Please enter a contract name");
       return;
     }
 
     if (!contractAddress.trim()) {
-      toast.error('Please enter a contract address');
+      toast.error("Please enter a contract address");
       return;
     }
 
     if (!isValidAbi) {
-      toast.error('Please enter a valid ABI');
+      toast.error("Please enter a valid ABI");
       return;
     }
 
     if (!chain) {
-      toast.error('Please select a valid chain');
+      toast.error("Please select a valid chain");
       return;
     }
 
@@ -54,10 +54,10 @@ export default function Register() {
         abi: parsedAbi,
         chain,
       });
-      toast.success('Contract saved successfully');
-      navigate('/');
+      toast.success("Contract saved successfully");
+      navigate("/");
     } catch {
-      toast.error('Failed to save contract');
+      toast.error("Failed to save contract");
     }
   };
 
@@ -74,7 +74,7 @@ export default function Register() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Contract Name
+              Contract Name*
             </label>
             <input
               type="text"
@@ -87,7 +87,7 @@ export default function Register() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Contract Address
+              Contract Address*
             </label>
             <input
               type="text"
@@ -100,7 +100,7 @@ export default function Register() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Contract ABI
+              Contract ABI*
             </label>
             <textarea
               value={abi}
@@ -117,12 +117,15 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Select Blockchain</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Select Chain*
+            </label>
             <select
               value={chain}
               onChange={(e) => setChain(e.target.value)}
               className="mt-1 w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
             >
+              <option disabled={!!chain}>Select Chain</option>
               {Object.entries(availableChains).map(([key, { name }]) => (
                 <option key={key} value={key}>
                   {name}
@@ -134,7 +137,7 @@ export default function Register() {
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={() => navigate('/')}
+              onClick={() => navigate("/")}
               className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
             >
               Cancel

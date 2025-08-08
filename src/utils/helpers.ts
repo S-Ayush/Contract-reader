@@ -41,4 +41,16 @@ export const availableChains = {
         https_rpc: 'https://arbitrum-one.public.blastapi.io',
         wss_rpc: 'https://arbitrum-one-rpc.publicnode.com',
     },
+    base_testnet: {
+        name: 'Base Sepolia',
+        chainId: '0x14a34', // 846934 in decimal
+        https_rpc: 'https://base-sepolia.public.blastapi.io',
+        wss_rpc: 'wss://base-sepolia-rpc.publicnode.com',
+    },
+    base_mainnet: {
+        name: 'Base Mainnet',
+        chainId: '0x2105', // 8453 in decimal
+        https_rpc: 'https://base-mainnet.public.blastapi.io',
+        wss_rpc: 'wss://base-mainnet-rpc.publicnode.com',
+    },
 };
